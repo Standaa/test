@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "target": "es6",
+    "module": "commonjs",
+    "strict": false,
+    "typeRoots": ["./node_modules/@types"],
+    "types": ["mocha", "chai"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}
