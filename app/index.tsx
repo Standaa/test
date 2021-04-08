@@ -4,7 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import "react-app-polyfill/ie11";
 import "react-app-polyfill/stable";
 
-import "sanitize.css/sanitize.css";
 import { App } from "./App";
 import { ErrorBoundary } from "./ErrorBoundary";
 

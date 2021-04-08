@@ -1,41 +1,57 @@
 const assert = require("assert");
 const anchor = require("@project-serum/anchor");
 
+import { newAccountWithLamports } from "./utils";
+
 describe("test", () => {
   const provider = anchor.Provider.local();
 
-  // Configure the client to use the local cluster.
   anchor.setProvider(provider);
+  const poolProgram = anchor.workspace.Test;
+  const connection = provider.connection;
 
-  const program = anchor.workspace.Test;
+  it("Uses the workspace to invoke the initialize instruction", async () => {
+    // #region code
+    // Read the deployed program from the workspace.
 
-  it("Is runs the constructor", async () => {
-    // #region ctor
-    // Initialize the program's state struct.
-    await program.state.rpc.new({
+    // Execute the RPC.
+    await poolProgram.rpc.initialize();
+    // #endregion code
+
+    const userWallet = await newAccountWithLamports(connection);
+
+    const seed = "test";
+
+    const userPoolAccountPublicKey = await anchor.web3.PublicKey.createWithSeed(
+      userWallet.publicKey,
+      seed,
+      poolProgram.programId,
+    );
+
+    await poolProgram.rpc.initialiseUserPoolAccount({
       accounts: {
-        authority: provider.wallet.publicKey,
+        userPoolAccount: userPoolAccountPublicKey,
+        rent: anchor.web3.SYSVAR_RENT_PUBKEY,
       },
+      signers: [userWallet],
+      instructions: [
+        anchor.web3.SystemProgram.createAccountWithSeed({
+          basePubkey: userWallet.publicKey,
+          fromPubkey: userWallet.publicKey,
+          lamports: 1e8,
+          newAccountPubkey: userPoolAccountPublicKey,
+          programId: poolProgram.programId,
+          seed: seed,
+          space: 24,
+        }),
+      ],
     });
-    // #endregion ctor
 
-    // Fetch the state struct from the network.
-    // #region accessor
-    const state = await program.state();
-    // #endregion accessor
+    const userPoolAccountAfterInit = await poolProgram.account.userPoolAccount(userPoolAccountPublicKey);
 
-    assert.ok(state.count.eq(new anchor.BN(0)));
-  });
+    console.log(userPoolAccountAfterInit);
 
-  it("Executes a method on the program", async () => {
-    // #region instruction
-    await program.state.rpc.increment({
-      accounts: {
-        authority: provider.wallet.publicKey,
-      },
-    });
-    // #endregion instruction
-    const state = await program.state();
-    assert.ok(state.count.eq(new anchor.BN(1)));
+    assert.ok(userPoolAccountAfterInit.shares.eq(new anchor.BN(0)));
+    assert.ok(userPoolAccountAfterInit.collateral.eq(new anchor.BN(0)));
   });
 });

@@ -1,60 +1,90 @@
 import React, { ReactElement } from "react";
 
-import { Program } from "@project-serum/anchor";
-import { Provider } from "@project-serum/common";
+import { Program, Provider, web3 } from "@project-serum/anchor";
 import Wallet from "@project-serum/sol-wallet-adapter";
 
 import idl from "../target/idl/test";
-import payerAccount from "./payer";
-import { Connection, PublicKey, ConfirmOptions } from "@solana/web3.js";
 
 export function App(): ReactElement {
-  console.log(payerAccount.publicKey.toBase58());
+  // const NETWORK_URL_KEY = "https://devnet.solana.com";
+  const NETWORK_URL_KEY = "http://localhost:8899";
+  const WALLET_PROVIDER = "https://www.sollet.io";
+  const PROGRAM_ID_KEY = "89q7CoJhBrWhb2ZmZzAbaU2Rs4EEQBzhLCzZxfb6bBTu";
 
-  const opts: ConfirmOptions = {
-    skipPreflight: true,
-    commitment: "singleGossip",
+  const connection = new web3.Connection(NETWORK_URL_KEY);
+  const wallet = new Wallet(WALLET_PROVIDER, NETWORK_URL_KEY);
+  const programId = new web3.PublicKey(PROGRAM_ID_KEY);
+
+  const opts: web3.ConfirmOptions = {
     preflightCommitment: "singleGossip",
+    commitment: "singleGossip",
   };
 
-  const networkUrl = "http://localhost:8899";
-  const providerUrl = "https://www.sollet.io";
-
-  const connection = new Connection(networkUrl, opts.preflightCommitment);
-  const wallet = new Wallet(providerUrl, networkUrl);
   const provider = new Provider(connection, wallet, opts);
-
-  const PROGRAM_ID_KEY = "E67H3eVYoZH8adR4AB2B9dzfBfJyPrDCA2FbTmAMJsy2";
-
-  wallet.on("connect", (publicKey) => console.log("Connected to " + publicKey.toBase58()));
-  wallet.on("disconnect", () => console.log("Disconnected"));
-
-  // Address of the deployed program.
-  const programId = new PublicKey(PROGRAM_ID_KEY);
-  // Generate the program client from IDL.
   const poolClient = new Program(idl, programId, provider);
+
+  const testConnection = async () => {
+    const { blockhash } = await connection.getRecentBlockhash();
+    console.log("blockhash", blockhash);
+  };
 
   const connectWallet = async () => {
     await wallet.connect();
   };
 
-  const handleProcess = async () => {
+  wallet.on("connect", () => {
+    console.log("Connected to wallet ", wallet.publicKey.toBase58());
+  });
+
+  wallet.on("disconnect", () => {
+    console.log("Disconnected from wallet");
+  });
+
+  const processDeposit = async () => {
     try {
-      const state = await poolClient.state();
-      console.log(state);
-      console.log("Success");
+      const seed = "seedTest";
+
+      const userPoolAccountPublicKey = await web3.PublicKey.createWithSeed(
+        wallet.publicKey,
+        seed,
+        poolClient.programId,
+      );
+
+      console.log("userPoolAccountPublicKey", userPoolAccountPublicKey);
+
+      await poolClient.rpc.initialiseUserPoolAccount({
+        accounts: {
+          userPoolAccount: userPoolAccountPublicKey,
+          rent: web3.SYSVAR_RENT_PUBKEY,
+        },
+        signers: [wallet],
+        instructions: [
+          await web3.SystemProgram.createAccountWithSeed({
+            basePubkey: wallet.publicKey,
+            fromPubkey: wallet.publicKey,
+            lamports: 1e8,
+            newAccountPubkey: userPoolAccountPublicKey,
+            programId: poolClient.programId,
+            seed: seed,
+            space: 16,
+          }),
+        ],
+      });
     } catch (e) {
-      console.log("ERRRR:", e);
+      console.log(e);
     }
   };
 
   return (
     <>
+      <button type="button" onClick={testConnection}>
+        Test Connection
+      </button>
       <button type="button" onClick={connectWallet}>
         Connect Wallet
       </button>
-      <button type="button" onClick={handleProcess}>
-        Click
+      <button type="button" onClick={processDeposit}>
+        Initialise Pool Account
       </button>
     </>
   );

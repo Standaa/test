@@ -6,35 +6,32 @@ use anchor_lang::prelude::*;
 pub mod test {
     use super::*;
 
-    #[state]
-    pub struct Counter {
-        authority: Pubkey,
-        count: u64,
+    pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
+        Ok(())
     }
 
-    impl Counter {
-        pub fn new(ctx: Context<Auth>) -> Result<Self> {
-            Ok(Self {
-                authority: *ctx.accounts.authority.key,
-                count: 0,
-            })
-        }
-
-        pub fn increment(&mut self, ctx: Context<Auth>) -> Result<()> {
-            if &self.authority != ctx.accounts.authority.key {
-                msg!("You are not authorized to perform this action.");
-                return Err(ErrorCode::Unauthorized.into());
-            }
-            self.count += 1;
-            Ok(())
-        }
+    pub fn initialise_user_pool_account(ctx: Context<InitialiseUserPoolAccount>) -> ProgramResult {
+        let user_pool_account = &mut ctx.accounts.user_pool_account;
+        user_pool_account.shares = 0;
+        user_pool_account.collateral = 0;
+        Ok(())
     }
 }
 
 #[derive(Accounts)]
-pub struct Auth<'info> {
-    #[account(signer)]
-    authority: AccountInfo<'info>,
+pub struct Initialize {}
+
+#[derive(Accounts)]
+pub struct InitialiseUserPoolAccount<'info> {
+    #[account(init)]
+    pub user_pool_account: ProgramAccount<'info, UserPoolAccount>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[account]
+pub struct UserPoolAccount {
+    pub shares: u64,
+    pub collateral: u64,
 }
 
 #[error]
