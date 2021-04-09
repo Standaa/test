@@ -10,7 +10,7 @@ pub mod test {
         Ok(())
     }
 
-    pub fn initialise_user_pool_account(ctx: Context<InitialiseUserPoolAccount>) -> ProgramResult {
+    pub fn initialize_user_pool_account(ctx: Context<InitializeUserPoolAccount>) -> ProgramResult {
         let user_pool_account = &mut ctx.accounts.user_pool_account;
         user_pool_account.shares = 0;
         user_pool_account.collateral = 0;
@@ -22,7 +22,7 @@ pub mod test {
 pub struct Initialize {}
 
 #[derive(Accounts)]
-pub struct InitialiseUserPoolAccount<'info> {
+pub struct InitializeUserPoolAccount<'info> {
     #[account(init)]
     pub user_pool_account: ProgramAccount<'info, UserPoolAccount>,
     pub rent: Sysvar<'info, Rent>,

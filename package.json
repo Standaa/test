@@ -1,7 +1,7 @@
 {
   "name": "test",
   "version": "1.0.0",
-  "description": "",
+  "description": "test",
   "private": true,
   "directories": {
     "test": "tests"
