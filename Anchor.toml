@@ -1,2 +1,2 @@
-cluster = "http://localhost:8899"
+cluster = "localnet"
 wallet = "/Users/standaa/.config/solana/id.json"

@@ -11,13 +11,6 @@ describe("test", () => {
   const connection = provider.connection;
 
   it("Uses the workspace to invoke the initialize instruction", async () => {
-    // #region code
-    // Read the deployed program from the workspace.
-
-    // Execute the RPC.
-    await poolProgram.rpc.initialize();
-    // #endregion code
-
     const userWallet = await newAccountWithLamports(connection);
 
     const seed = "test";
@@ -28,7 +21,7 @@ describe("test", () => {
       poolProgram.programId,
     );
 
-    await poolProgram.rpc.initialiseUserPoolAccount({
+    await poolProgram.rpc.initializeUserPoolAccount({
       accounts: {
         userPoolAccount: userPoolAccountPublicKey,
         rent: anchor.web3.SYSVAR_RENT_PUBKEY,

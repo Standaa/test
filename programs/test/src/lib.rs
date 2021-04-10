@@ -6,10 +6,6 @@ use anchor_lang::prelude::*;
 pub mod test {
     use super::*;
 
-    pub fn initialize(_ctx: Context<Initialize>) -> ProgramResult {
-        Ok(())
-    }
-
     pub fn initialize_user_pool_account(ctx: Context<InitializeUserPoolAccount>) -> ProgramResult {
         let user_pool_account = &mut ctx.accounts.user_pool_account;
         user_pool_account.shares = 0;
@@ -17,9 +13,6 @@ pub mod test {
         Ok(())
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
 
 #[derive(Accounts)]
 pub struct InitializeUserPoolAccount<'info> {

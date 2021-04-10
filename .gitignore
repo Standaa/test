@@ -1,4 +1,6 @@
-# ignore Mac OS noise
+# Ignore VsCode config
+.vscode
+# Ignore Mac OS noise
 .DS_Store
 # ignore the build directory for Rust/Anchor
 target
@@ -8,6 +10,7 @@ target
 .anchor
 # Ignore node modules
 node_modules
+# Ignore parcel artifacts
 .parcel-cache/*
-dist/*
-.vscode
+app/dist
+app/.cache

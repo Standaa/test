@@ -7,14 +7,14 @@ import idl from "../target/idl/test";
 
 export function App(): ReactElement {
   const NETWORK_URL_KEY = "http://localhost:8899";
-  const PROGRAM_ID_KEY = "FYbwjwwSDEkUvmJLeV9q7vfDyWpRBHF5uro9U77aKsjf";
+  const PROGRAM_ID_KEY = "A69qsHArSsH1kYzXCs6Y5G2CiRsE79GCGMZSDgM4MqWB";
 
   const connection = new web3.Connection(NETWORK_URL_KEY);
   const programId = new web3.PublicKey(PROGRAM_ID_KEY);
 
   const opts: web3.ConfirmOptions = {
     preflightCommitment: "singleGossip",
-    commitment: "singleGossip",
+    commitment: "finalized",
   };
 
   const seed = "testSeed";
@@ -39,27 +39,30 @@ export function App(): ReactElement {
 
   const processDeposit = async () => {
     try {
-      console.log("typeof wallet", typeof userAccount);
-      console.log("userWallet.publicKey", userWallet.publicKey);
-
+      console.log("User wallet address", userAccount.publicKey.toBase58());
+      console.log("User derived address", derivedAccount.toBase58());
       await poolProgram.rpc.initializeUserPoolAccount({
         accounts: {
           userPoolAccount: derivedAccount,
           rent: web3.SYSVAR_RENT_PUBKEY,
         },
-        signers: [userWallet],
+        signers: [userAccount],
         instructions: [
           await web3.SystemProgram.createAccountWithSeed({
             basePubkey: userWallet.publicKey,
             fromPubkey: userWallet.publicKey,
-            lamports: 1e8,
+            lamports: 10e8,
             newAccountPubkey: derivedAccount,
             programId: poolProgram.programId,
             seed: seed,
-            space: 16,
+            space: 8 + 128,
           }),
         ],
       });
+      const userAccountAfterInit = await poolProgram.account.userPoolAccount(derivedAccount);
+      console.log("Derived Account after init & creation:", userAccountAfterInit);
+
+      console.log("Success");
     } catch (e) {
       console.log(e);
     }

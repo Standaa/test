@@ -1,6 +1,6 @@
 import { web3 } from "@project-serum/anchor";
 
-export async function newAccountWithLamports(connection: web3.Connection, lamports = 1000000): Promise<web3.Account> {
+export async function newAccountWithLamports(connection: web3.Connection, lamports = 50e8): Promise<web3.Account> {
   const account = new web3.Account();
 
   let retries = 30;
